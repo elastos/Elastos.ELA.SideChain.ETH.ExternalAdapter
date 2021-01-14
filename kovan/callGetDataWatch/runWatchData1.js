@@ -1,8 +1,7 @@
-const RunJSON = require('./contracts/DataSubscriber.json');
+const RunJSON = require('./contracts/DataSubscriber1.json');
 const Web3 = require('web3');
 
-
-const config = require('./config.json');
+const config = require('./config1.json');
 const ethURL = config["ethURL"];
 const ContractAddress = config["contractAddress"];
 
@@ -12,13 +11,7 @@ const privateKey = config["privateKey"];
 const oracle = config["oracle"];
 const jobID = config["jobID"];
 
-// const httpUrl = config["httpUrl"];
-// const ws = config["wsUrl"];
 
-//const privateKey = "c03b0a988e2e18794f2f0e881d7ffcd340d583f63c1be078426ae09ddbdec9f5";
-//const oracle = "0x90688d075506b69EB5fDbF7f01CfDb27130c85B2";
-//const jobID = "6372a99d778147a09f039e56d30f61ba";
-//const testBtcAddress = "1EzwoHtiXB4iFwedPr49iywjZn2nnekhoj";
 
 const Run = new web3Obj.eth.Contract(RunJSON.abi, ContractAddress, {
   gasPrice: 1000000000, // 1gwei
@@ -99,7 +92,7 @@ function getCallMethod(nType,address){
 }
 
 main().then(() => {
-  console.log("kovan OK");
+  console.log("kovan node1 OK");
 }).catch((e) => {
     console.log("error", e.message);
 });
