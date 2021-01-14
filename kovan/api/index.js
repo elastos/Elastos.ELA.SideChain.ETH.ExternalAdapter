@@ -12,6 +12,7 @@ const ws = config["wsUrl"];
 
 const Web3 = require('web3');
 const web3Http = new Web3(httpUrl);
+var curBtcAddress = "";
 
 const Run = new web3Http.eth.Contract(DataConsumer.abi, ContractAddress, {
   gasPrice: 1000000000, // 1gwei
@@ -79,7 +80,16 @@ const watchBtcTimespanChainRequest = (callback) =>{
 
 const watchBtcScoreChainRequest = (address,callback) =>{
 
-  console.log("watch btc chain score");
+  console.log("0 watch btc chain score");
+  console.log("curBtcAddress " + curBtcAddress);
+  console.log("address " + address);
+  if(curBtcAddress == address){
+    console.log("return duplicate call");
+    return "";
+  }
+  curBtcAddress = address;
+  console.log("1 come to real call");
+
 
   //var web3Obj = new Web3(ws);
   const web3Obj = new Web3()
@@ -103,6 +113,7 @@ const watchBtcScoreChainRequest = (address,callback) =>{
       const retReponse = {
         data:retVal
       }
+      curBtcAddress = "";
       callback(200,retReponse);
     
   });
