@@ -219,10 +219,8 @@ const createEthRawaddr = async (address, callback) => {
   doCall = true;
 
   while (doCall) {
-
-
-    console.log(page);
     
+    //console.log(page);
     requestJson = await RequstForEthRawaddr(address,page);
     page ++;
     
