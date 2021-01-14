@@ -116,10 +116,6 @@ const watchBtcScoreChainRequest = (address,callback) =>{
       const retReponse = {data:retVal}
       callback(200,retReponse);
 
-
-
-
-    
   });
 
 }
