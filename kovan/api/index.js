@@ -87,9 +87,10 @@ const watchBtcScoreChainRequest = (address,callback) =>{
     console.log("###return duplicate call \n");
     const retReponse = { data:retVal }
     callback(200,retReponse);
+    return;
   }
   curBtcAddress = address;
-  console.log("-->1 come to real call");
+  console.log("-->1 come to real call\n");
 
 
   //var web3Obj = new Web3(ws);
@@ -108,15 +109,18 @@ const watchBtcScoreChainRequest = (address,callback) =>{
   }, function(err, data) {
 
       provider.disconnect();
-     
+      curBtcAddress = "";
+      retVal = 0;
+
       console.log(data.returnValues);
       retVal = parseInt(data.returnValues["0"])
 
       const retReponse = {data:retVal}
       callback(200,retReponse);
 
-      curBtcAddress = "";
-      retVal = 0;
+
+
+
     
   });
 
