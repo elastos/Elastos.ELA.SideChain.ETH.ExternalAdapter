@@ -85,8 +85,6 @@ const watchBtcScoreChainRequest = (address,callback) =>{
   console.log("###curBtcAddress " + curBtcAddress + " address " + address);
   if(curBtcAddress == address){
     console.log("###return duplicate call \n");
-    const retReponse = { data:retVal }
-    callback(200,retReponse);
     return;
   }
   curBtcAddress = address;
@@ -109,10 +107,10 @@ const watchBtcScoreChainRequest = (address,callback) =>{
   }, function(err, data) {
 
       provider.disconnect();
+
       curBtcAddress = "";
       retVal = 0;
-
-      console.log(data.returnValues);
+      //console.log(data.returnValues);
       retVal = parseInt(data.returnValues["0"])
 
       const retReponse = {data:retVal}
