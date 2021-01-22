@@ -1,7 +1,7 @@
 {
     "privateKey":"c03b0a988e2e18794f2f0e881d7ffcd340d583f63c1be078426ae09ddbdec9f5",
-    "oracle":"0x608A1b90c9436e084EB16bbc6e4eFBedb2A613dd",
-    "jobID":"70a59761f2f145d6a258b2628e9dd5ac",
+    "oracle":"0x608a1b90c9436e084eb16bbc6e4efbedb2a613dd",
+    "jobID":"f5f02c7a1b4e4a83a24e55c0e15b800c",
     "ethURL":"https://kovan.infura.io/v3/7e31d49d7c8a48f4a4539aff9da768e7",
     "contractAddress":"0xD239a09CCF85766b5d8B6E5DC1Ef31AA86A26d52"
 }

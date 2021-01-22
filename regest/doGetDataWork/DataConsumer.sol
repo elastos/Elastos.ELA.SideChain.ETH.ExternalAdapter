@@ -4,20 +4,22 @@ pragma solidity 0.4.24;
 //import "https://github.com/smartcontractkit/chainlink/evm-contracts/src/v0.4/ChainlinkClient.sol";
 //ela
 import "https://github.com/elastos/Elastos.ELA.SideChain.ETH.Chainlink/evm-contracts/src/v0.4/ChainlinkClient.sol";
-import "https://github.com/smartcontractkit/chainlink/evm-contracts/src/v0.4/vendor/Ownable.sol";
+import "https://github.com/elastos/Elastos.ELA.SideChain.ETH.Chainlink/evm-contracts/src/v0.4/vendor/Ownable.sol";
 
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v2.0.0/contracts/math/SafeMath.sol";
 
-
 contract DataConsumer is ChainlinkClient, Ownable {
 
-  uint256 constant private ORACLE_PAYMENT = 1 * LINK;
+  uint256 constant private ORACLE_PAYMENT = 1 * 10**16;
   using SafeMath for uint256;
 
   constructor() public Ownable() {
-    setPublicChainlinkToken();
+    //setPublicChainlinkToken();
   }
 
+  function() public payable{
+      require(msg.value > 0);
+  }
   //----BTC
   /// RequestBtcBalance
   uint256 public btcBalance;
@@ -31,7 +33,7 @@ contract DataConsumer is ChainlinkClient, Ownable {
     onlyOwner
   {
     Chainlink.Request memory req = buildChainlinkRequest(stringToBytes32(_jobId), this, this.fulfillBtcBalance.selector);
-    req.add("get", strConcat("http://47.52.148.190:8090/balance/btc/?address=" ,_address));
+    req.add("get", strConcat("http://47.99.194.12:8090/balance/btc/?address=" ,_address));
     req.add("path", "data");
     sendChainlinkRequestTo(_oracle, req, ORACLE_PAYMENT);
   }
@@ -57,7 +59,7 @@ contract DataConsumer is ChainlinkClient, Ownable {
     onlyOwner
   {
     Chainlink.Request memory req = buildChainlinkRequest(stringToBytes32(_jobId), this, this.fulfillBtcTimespan.selector);
-    req.add("get", strConcat("http://47.52.148.190:8090/rawaddr/btc?address=" ,_address));
+    req.add("get", strConcat("http://47.99.194.12:8090/rawaddr/btc?address=" ,_address));
     req.add("path", "data");
     sendChainlinkRequestTo(_oracle, req, ORACLE_PAYMENT);
   }
@@ -88,7 +90,7 @@ contract DataConsumer is ChainlinkClient, Ownable {
     btcAddress = _address;
 
     Chainlink.Request memory reqBtc = buildChainlinkRequest(stringToBytes32(jobId), this, this.fulfillBtcSorceBalance.selector);
-    reqBtc.add("get", strConcat("http://47.52.148.190:8090/balance/btc/?address=" ,btcAddress));
+    reqBtc.add("get", strConcat("http://47.99.194.12:8090/balance/btc/?address=" ,btcAddress));
     reqBtc.add("path", "data");
     sendChainlinkRequestTo(oracle, reqBtc, ORACLE_PAYMENT);
 
@@ -103,7 +105,7 @@ contract DataConsumer is ChainlinkClient, Ownable {
     btcBalance = _btcBalance;
 
     Chainlink.Request memory reqTimespan = buildChainlinkRequest(stringToBytes32(jobId), this, this.fulfillBtcSoreTimespan.selector);
-    reqTimespan.add("get", strConcat("http://47.52.148.190:8090/rawaddr/btc?address=" ,btcAddress));
+    reqTimespan.add("get", strConcat("http://47.99.194.12:8090/rawaddr/btc?address=" ,btcAddress));
     reqTimespan.add("path", "data");
     sendChainlinkRequestTo(oracle, reqTimespan, ORACLE_PAYMENT);
 
@@ -153,7 +155,7 @@ contract DataConsumer is ChainlinkClient, Ownable {
     onlyOwner
   {
     Chainlink.Request memory req = buildChainlinkRequest(stringToBytes32(_jobId), this, this.fulfillEthBalance.selector);
-    req.add("get", strConcat("http://47.52.148.190:8090/balance/eth/?address=" ,_address));
+    req.add("get", strConcat("http://47.99.194.12:8090/balance/eth/?address=" ,_address));
     req.add("path", "data");
     sendChainlinkRequestTo(_oracle, req, ORACLE_PAYMENT);
   }
@@ -179,7 +181,7 @@ contract DataConsumer is ChainlinkClient, Ownable {
     onlyOwner
   {
     Chainlink.Request memory req = buildChainlinkRequest(stringToBytes32(_jobId), this, this.fulfillEthTimespan.selector);
-    req.add("get", strConcat("http://47.52.148.190:8090/rawaddr/eth?address=" ,_address));
+    req.add("get", strConcat("http://47.99.194.12:8090/rawaddr/eth?address=" ,_address));
     req.add("path", "data");
     sendChainlinkRequestTo(_oracle, req, ORACLE_PAYMENT);
   }
@@ -198,15 +200,7 @@ contract DataConsumer is ChainlinkClient, Ownable {
       return string(abi.encodePacked(a, b));
   }
   
-  
-  function getChainlinkToken() public view returns (address) {
-    return chainlinkTokenAddress();
-  }
-
-  function withdrawLink() public onlyOwner {
-    LinkTokenInterface link = LinkTokenInterface(chainlinkTokenAddress());
-    require(link.transfer(msg.sender, link.balanceOf(address(this))), "Unable to transfer");
-  }
+ 
 
   function cancelRequest(
     bytes32 _requestId,
