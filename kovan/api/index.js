@@ -93,7 +93,10 @@ const watchBtcScoreChainRequest = (address,callback) =>{
 
   callGetDataWork(address,0);
 
-  dataConsumerContract.events.RequestBtcScoreResult({
+  //http 返回
+  callback(200,retReponse);
+
+  dataConsumerContract.events.RequestBtcScoreResult({ //一直等
   }, function(err, data) {
 
       provider.disconnect();
@@ -103,9 +106,16 @@ const watchBtcScoreChainRequest = (address,callback) =>{
       const retReponse = {
         data:retVal
       }
-      callback(200,retReponse);
+
+      //TODO
+      //await 监听回调
+      //callback(200,retReponse);
     
   });
+
+
+  
+
 
 }
 

@@ -11,13 +11,9 @@ const customError = (data) => {
 
 const createRequest = (input, callback) => {
 
-  console.log(input);
-
   getBtcBalance(input.btcAddress ,(btcBalance) => {
-    console.log('btcBalance: ', btcBalance)
 
     getEthBalance(input.ethAddress,(ethBalance) =>{
-      console.log('ethBalance: ', ethBalance)
 
       const retReponse = {
           status:200,
@@ -31,11 +27,11 @@ const createRequest = (input, callback) => {
 
 }
 
-//seperate the api btc
+//btc
 const createBtcRequest = (address, callback) => {
   
   getBtcBalance(address ,(btcBalance) => {
-    console.log('btcBalance: ', btcBalance)
+    
     const retReponse = {
         data:btcBalance
     }
@@ -44,10 +40,11 @@ const createBtcRequest = (address, callback) => {
 
 }
 
+///eth
 const createEthRequest = (address, callback) => {
   
   getEthBalance(address ,(ethBalance) => {
-    console.log('ethBalance: ', ethBalance)
+    
     const retReponse = {
         data:ethBalance
     }
@@ -56,13 +53,10 @@ const createEthRequest = (address, callback) => {
 
 }
 
-
-
+//btc
 const getBtcBalance = (btcAddress,callback)  => {
 
   const url = `https://blockchain.info/q/addressbalance/${btcAddress}`
-
-  console.log(url);
 
   Requester.request(url, customError)
     .then(response => {
@@ -75,17 +69,14 @@ const getBtcBalance = (btcAddress,callback)  => {
     })
 }
 
+///eth
 const getEthBalance = (ethAddress,callback) =>{
 
   const url = `https://api.etherscan.io/api?module=account&action=balance&address=${ethAddress}&tag=latest&apikey=NF6N7FHJSHMIXZ34XDB4VIBQ8Z6242SW3C`
 
   Requester.request(url, customError)
     .then(response => {
-      //const result = Requester.validateResultNumber(response.data,["result"])
-      
-      //const result = Requester.validateResultNumber(response.data,["result"])
       result = response.data["result"];
-      
       callback(result);
     })
     .catch(error => {
@@ -96,7 +87,7 @@ const getEthBalance = (ethAddress,callback) =>{
 
 }
 
-//
+//btc
 const createBtcRawaddr = async (address, callback) => {
   
 
@@ -224,16 +215,13 @@ const createEthRawaddr = async (address, callback) => {
     requestJson = await RequstForEthRawaddr(address,page);
     page ++;
     
-
-     //cath error
-    if(requestJson["timespan"] == -1){
-      page --;
-      doCall = true
+    if(page * 50 > requestJson["txCnt"]){
+      doCall = false
     }
 
     //do not find
     if(requestJson["timespan"] == 0){
-      doCall = true
+      doCall = false
     }
 
     //find the data
@@ -255,12 +243,14 @@ const createEthRawaddr = async (address, callback) => {
 
 }
 
+
 ///
 const RequstForEthRawaddr = async (ethAddress,page) =>{
 
   retTimespan = 0
   n_tx = 0
-  const url = "http://api.etherscan.io/api?module=account&action=txlist&address=" + ethAddress + "&page=" + page +"&offset=100&sort=desc&apikey=NF6N7FHJSHMIXZ34XDB4VIBQ8Z6242SW3C"
+  const url = "http://api.etherscan.io/api?module=account&action=txlist&address=" + ethAddress + "&page=" + page +"&offset=50&sort=desc&apikey=NF6N7FHJSHMIXZ34XDB4VIBQ8Z6242SW3C"
+
   final_balance = await getEthBalanceAsync(ethAddress);
   
   await Requester.request(url, customError)
@@ -271,10 +261,7 @@ const RequstForEthRawaddr = async (ethAddress,page) =>{
 
   })
   .catch(error => {
-    console.log("get eth RequstForEthRawaddr error :");
-    console.log(error);
-    return {timespan:-1,txCnt:0};
-   
+    return {timespan:0,txCnt:0};
   })
 
   return {timespan:retTimespan,txCnt:n_tx};
@@ -291,12 +278,8 @@ const getHistoryEthTime = (txs,orgBalance,ethAddress) =>{
   timeSpan = 0;
   indexConditon = 0;
 
-  console.log("xxl length " + txs.length);
+  
   for(var index = 0 ;index < txs.length ;index ++ ){
-
-      console.log("xxl ... start " + index);
-      console.log(txs[index]);
-      console.log("xxl ... end " + index);
 
       if(curBalance < balance){
           isSecendCondtion = true;
@@ -319,15 +302,10 @@ const getHistoryEthTime = (txs,orgBalance,ethAddress) =>{
       }else{
         curBalance = curBalance.sub(txs[index]["value"])
       }
-      console.log("xxl cur " + curBalance);
-
-  
   }
  
-  console.log("xxl indexConditon " + indexConditon);
   if(indexConditon > 0){
       timeSpan = txs[indexConditon - 1]["timeStamp"];
-      //console.log(txs[0]["result"])
   }else{
       return 0;
   }
@@ -343,14 +321,9 @@ const getEthBalanceAsync = async (ethAddress) =>{
   var ethValue = "0";
   await Requester.request(url, customError)
     .then(response => {
-      console.log("xxl getEthBalanceAsync  ...");
-      console.log(response["data"]["result"]);
-      //return response["data"]["result"];
       ethValue = response["data"]["result"];
     })
     .catch(error => {
-      console.log("get eth balance error ! :");
-      console.log(error);
       ethValue = "0"
     })
 

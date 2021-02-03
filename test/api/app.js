@@ -63,7 +63,7 @@ app.get('/rawaddr/btc', (req, res) => {
 })
 
 app.get('/rawaddr/eth', (req, res) => {
-
+  
   createEthRawaddr(req.query.address, (status, result) => {
     console.log('Result: ', result)
     res.status(status).json(result)
