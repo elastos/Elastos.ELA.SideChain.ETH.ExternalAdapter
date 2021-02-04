@@ -5,6 +5,7 @@ const watchBtcScoreChainRequest  = require('./index').watchBtcScoreChainRequest
 
 const watchEthBalanceChainRequest  = require('./index').watchEthBalanceChainRequest
 const watchEthTimespanChainRequest = require('./index').watchEthTimespanChainRequest
+const watchEthScoreChainRequest  = require('./index').watchEthScoreChainRequest
 
 const express = require('express')
 const bodyParser = require('body-parser')
@@ -65,6 +66,18 @@ app.get('/chain/watch/btcScore', (req, res) => {
   
   })
 })
+
+//add eth score
+app.get('/chain/watch/ethScore', (req, res) => {
+
+  watchEthScoreChainRequest(req.query.address,(status, result) => {
+    
+    console.log('Result: ', result)
+    res.status(status).json(result)
+  
+  })
+})
+
 
 
 app.listen(port, () => console.log(`Listening on port ${port}!`))

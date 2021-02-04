@@ -11,7 +11,7 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v2.0.0/contr
 contract DataConsumer is ChainlinkClient, Ownable {
 
   uint256 constant private ORACLE_PAYMENT = 1 * 10**16;
-  using SafeMath for uint256;
+  //using SafeMath for uint256;
 
   constructor() public Ownable() {
     //setPublicChainlinkToken();
@@ -121,7 +121,7 @@ contract DataConsumer is ChainlinkClient, Ownable {
     btcTimpspan = _btcTimeSpan;
 
     emit RequestBtcScoreFulfilled(btcBalance,btcTimpspan);
-    btcScore = calcEthScore();
+    btcScore = calcBtcScore();
     
   }
   
@@ -129,7 +129,7 @@ contract DataConsumer is ChainlinkClient, Ownable {
     uint256 indexed btcScore
   );
   
-  function calcEthScore() internal returns (uint256 score){
+  function calcBtcScore() internal returns (uint256 score){
       
 
     uint256 _btcBalanceScore = btcBalance.div(10000000);
@@ -156,7 +156,7 @@ contract DataConsumer is ChainlinkClient, Ownable {
     ethAddress = _address;
 
     Chainlink.Request memory reqEth = buildChainlinkRequest(stringToBytes32(jobId), this, this.fulfillEthSorceBalance.selector);
-    reqEth.add("get", strConcat("http://47.242.107.228:8090/balance/eth/?address=" ,ethAddress));
+    reqEth.add("get", strConcat("http://47.242.107.228:8090/balance/eth?address=" ,ethAddress));
     reqEth.add("path", "data");
     sendChainlinkRequestTo(oracle, reqEth, ORACLE_PAYMENT);
 
@@ -187,7 +187,7 @@ contract DataConsumer is ChainlinkClient, Ownable {
     ethTimpspan = _ethTimeSpan;
 
     emit RequestEthScoreFulfilled(ethBalance,ethTimpspan);
-    ethScore = calcScore();
+    ethScore = calcEthScore();
     
   }
   
@@ -195,7 +195,7 @@ contract DataConsumer is ChainlinkClient, Ownable {
     uint256 indexed ethScore
   );
   
-  function calcScore() internal returns (uint256 score){
+  function calcEthScore() internal returns (uint256 score){
       
 
     uint256 _ethBalanceScore = ethBalance.div(200000000000000000);

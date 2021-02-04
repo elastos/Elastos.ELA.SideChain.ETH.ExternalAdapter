@@ -1,12 +1,14 @@
 const RunJSON = require('./contracts/DataConsumer.json');
 const Web3 = require('web3');
-const web3Obj = new Web3('http://127.0.0.1:8545');
+const web3Obj = new Web3('http://13.115.138.227:20636');
 
 //
-const ContractAddress = "0xFA0217F522217a6E279a792C5F685A52042d6243";
+const ContractAddress = "0x68B40182229fe9D4a8d6405F83dd2E2e90c10E31";
 const privateKey = "c03b0a988e2e18794f2f0e881d7ffcd340d583f63c1be078426ae09ddbdec9f5";
-const oracle = "0xd865fda7fb0c1ea5f5c6161eaacb2bfd08d3fa6e";
-const jobID = "0c859a2a902147ccb843885c5442b9f1";
+
+const oracle = "0xdd8cfe82850181066010685acb2a161deefb8dd7";
+const jobID = "fa8e2ccf35284a6ca9291b0aa77a2130";
+
 const testBtcAddress = "1EzwoHtiXB4iFwedPr49iywjZn2nnekhoj";
 const testEthAddress = "0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae";
 
@@ -20,7 +22,7 @@ async function main() {
   const arguments = process.argv.splice(2);
   var transaction;
   if(arguments.length == 0){
-    transaction = getCallMethod(0);
+    transaction = getCallMethod(3);
   }else{
     nType = parseInt(arguments[0]);
     transaction = getCallMethod(nType);
@@ -70,6 +72,11 @@ function getCallMethod(nType){
   //RequestEthScore 3    
   }else if(nType == 3){
     //TODO
+    transaction = Run.methods.RequestEthScore(
+      oracle,
+      jobID,
+      testEthAddress
+    );
   //RequestEthBalance 4   
   }else if(nType == 4){
     transaction = Run.methods.RequestEthBalance(
