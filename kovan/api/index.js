@@ -105,7 +105,7 @@ const watchBtcScoreChainRequest = (address,callback) =>{
   callGetDataWork(address,0);
 
   //http 返回
-  callback(200,retReponse);
+  //callback(200,retReponse);
 
   dataConsumerContract.events.RequestBtcScoreResult({ //一直等
   }, function(err, data) {
@@ -148,7 +148,7 @@ const watchEthScoreChainRequest = (address,callback) =>{
   callGetDataWork(address,3);
 
   //http 返回
-  callback(200,retReponse);
+  //callback(200,retReponse);
 
   dataConsumerContract.events.RequestEthScoreResult({ //一直等
   }, function(err, data) {
