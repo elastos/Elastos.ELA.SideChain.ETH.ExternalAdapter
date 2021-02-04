@@ -1,7 +1,7 @@
-const RunJSON = require('./contracts/DataSubscriber0.json');
+const RunJSON = require('./contracts/DataSubscriber1.json');
 const Web3 = require('web3');
 
-const config = require('./config0.json');
+const config = require('./config1.json');
 const ethURL = config["ethURL"];
 const ContractAddress = config["contractAddress"];
 
@@ -92,7 +92,7 @@ function getCallMethod(nType,address){
 }
 
 main().then(() => {
-  console.log("kovan node0 OK");
+  console.log("kovan btc node1 OK");
 }).catch((e) => {
     console.log("error", e.message);
 });

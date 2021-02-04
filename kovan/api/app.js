@@ -5,6 +5,7 @@ const watchBtcScoreChainRequest  = require('./index').watchBtcScoreChainRequest
 
 const watchEthBalanceChainRequest  = require('./index').watchEthBalanceChainRequest
 const watchEthTimespanChainRequest = require('./index').watchEthTimespanChainRequest
+
 const watchEthScoreChainRequest  = require('./index').watchEthScoreChainRequest
 
 const express = require('express')

@@ -154,7 +154,7 @@ const watchEthScoreChainRequest = (address,callback) =>{
   }, function(err, data) {
 
       provider.disconnect();
-      curBtcAddress = "";
+      curEthAddress = "";
       retVal = 0;
       //console.log(data.returnValues);
       retVal = parseInt(data.returnValues["0"])
