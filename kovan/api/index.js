@@ -13,6 +13,7 @@ const ws = config["wsUrl"];
 const Web3 = require('web3');
 const web3Http = new Web3(httpUrl);
 var curBtcAddress = "";
+var curEthAddress = "";
 var retVal = 0;
 
 const Run = new web3Http.eth.Contract(DataConsumer.abi, ContractAddress, {
@@ -103,11 +104,13 @@ const watchBtcScoreChainRequest = (address,callback) =>{
 
   callGetDataWork(address,0);
 
-  dataConsumerContract.events.RequestBtcScoreResult({
+  //http 返回
+  //callback(200,retReponse);
+
+  dataConsumerContract.events.RequestBtcScoreResult({ //一直等
   }, function(err, data) {
 
       provider.disconnect();
-
       curBtcAddress = "";
       retVal = 0;
       //console.log(data.returnValues);
@@ -120,6 +123,48 @@ const watchBtcScoreChainRequest = (address,callback) =>{
 
 }
 
+const watchEthScoreChainRequest = (address,callback) =>{
+
+  console.log("###0 watch eth chain score");
+  console.log("###curEthAddress " + curEthAddress + " address " + address);
+  if(curEthAddress == address){
+    console.log("###return duplicate call \n");
+    return;
+  }
+  curEthAddress = address;
+  console.log("-->1 come to real call\n");
+
+
+  //var web3Obj = new Web3(ws);
+  const web3Obj = new Web3()
+  const provider = new Web3.providers.WebsocketProvider(ws);
+  web3Obj.setProvider(provider);
+  
+  const dataConsumerContract = new web3Obj.eth.Contract(DataConsumer.abi, ContractAddress, {
+    gasPrice: 1000000000, // 1gwei
+    gasLimit: 4000000,
+  });
+
+  callGetDataWork(address,3);
+
+  //http 返回
+  //callback(200,retReponse);
+
+  dataConsumerContract.events.RequestEthScoreResult({ //一直等
+  }, function(err, data) {
+
+      provider.disconnect();
+      curEthAddress = "";
+      retVal = 0;
+      //console.log(data.returnValues);
+      retVal = parseInt(data.returnValues["0"])
+
+      const retReponse = {data:retVal}
+      callback(200,retReponse);
+
+  });
+
+}
 
 //async function callGetDataWork(nTpye) {
 const callGetDataWork = async (address,nType) => {
@@ -169,7 +214,11 @@ function getCallMethod(address,nType){
     );
   //RequestEthScore 3    
   }else if(nType == 3){
-    //TODO
+    transaction = Run.methods.RequestEthScore(
+      oracle,
+      jobID,
+      address
+    );
   //RequestEthBalance 4   
   }else if(nType == 4){
     transaction = Run.methods.RequestEthBalance(
@@ -289,3 +338,5 @@ module.exports.watchEthBalanceChainRequest =  watchEthBalanceChainRequest
 module.exports.watchEthTimespanChainRequest = watchEthTimespanChainRequest
 
 module.exports.watchBtcScoreChainRequest = watchBtcScoreChainRequest
+
+module.exports.watchEthScoreChainRequest = watchEthScoreChainRequest

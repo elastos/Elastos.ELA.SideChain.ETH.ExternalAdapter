@@ -11,7 +11,7 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v2.0.0/contr
 contract DataConsumer is ChainlinkClient, Ownable {
 
   uint256 constant private ORACLE_PAYMENT = 1 * 10**16;
-  using SafeMath for uint256;
+  //using SafeMath for uint256;
 
   constructor() public Ownable() {
     //setPublicChainlinkToken();
@@ -33,7 +33,7 @@ contract DataConsumer is ChainlinkClient, Ownable {
     onlyOwner
   {
     Chainlink.Request memory req = buildChainlinkRequest(stringToBytes32(_jobId), this, this.fulfillBtcBalance.selector);
-    req.add("get", strConcat("http://47.99.194.12:8090/balance/btc/?address=" ,_address));
+    req.add("get", strConcat("http://47.242.107.228:8090/balance/btc/?address=" ,_address));
     req.add("path", "data");
     sendChainlinkRequestTo(_oracle, req, ORACLE_PAYMENT);
   }
@@ -59,7 +59,7 @@ contract DataConsumer is ChainlinkClient, Ownable {
     onlyOwner
   {
     Chainlink.Request memory req = buildChainlinkRequest(stringToBytes32(_jobId), this, this.fulfillBtcTimespan.selector);
-    req.add("get", strConcat("http://47.99.194.12:8090/rawaddr/btc?address=" ,_address));
+    req.add("get", strConcat("http://47.242.107.228:8090/rawaddr/btc?address=" ,_address));
     req.add("path", "data");
     sendChainlinkRequestTo(_oracle, req, ORACLE_PAYMENT);
   }
@@ -90,7 +90,7 @@ contract DataConsumer is ChainlinkClient, Ownable {
     btcAddress = _address;
 
     Chainlink.Request memory reqBtc = buildChainlinkRequest(stringToBytes32(jobId), this, this.fulfillBtcSorceBalance.selector);
-    reqBtc.add("get", strConcat("http://47.99.194.12:8090/balance/btc/?address=" ,btcAddress));
+    reqBtc.add("get", strConcat("http://47.242.107.228:8090/balance/btc/?address=" ,btcAddress));
     reqBtc.add("path", "data");
     sendChainlinkRequestTo(oracle, reqBtc, ORACLE_PAYMENT);
 
@@ -105,7 +105,7 @@ contract DataConsumer is ChainlinkClient, Ownable {
     btcBalance = _btcBalance;
 
     Chainlink.Request memory reqTimespan = buildChainlinkRequest(stringToBytes32(jobId), this, this.fulfillBtcSoreTimespan.selector);
-    reqTimespan.add("get", strConcat("http://47.99.194.12:8090/rawaddr/btc?address=" ,btcAddress));
+    reqTimespan.add("get", strConcat("http://47.242.107.228:8090/rawaddr/btc?address=" ,btcAddress));
     reqTimespan.add("path", "data");
     sendChainlinkRequestTo(oracle, reqTimespan, ORACLE_PAYMENT);
 
@@ -121,7 +121,7 @@ contract DataConsumer is ChainlinkClient, Ownable {
     btcTimpspan = _btcTimeSpan;
 
     emit RequestBtcScoreFulfilled(btcBalance,btcTimpspan);
-    btcScore = calcScore();
+    btcScore = calcBtcScore();
     
   }
   
@@ -129,7 +129,7 @@ contract DataConsumer is ChainlinkClient, Ownable {
     uint256 indexed btcScore
   );
   
-  function calcScore() internal returns (uint256 score){
+  function calcBtcScore() internal returns (uint256 score){
       
 
     uint256 _btcBalanceScore = btcBalance.div(10000000);
@@ -140,9 +140,75 @@ contract DataConsumer is ChainlinkClient, Ownable {
     
     return _btcScore;
   }
-  ///
 
   //----ETH
+  string ethAddress;
+  event RequestEthScoreFulfilled(
+    uint256 indexed ethBalance,
+    uint256 indexed ethTimespan
+  );
+  function RequestEthScore(address _oracle, string _jobId,string _address)
+    public
+    onlyOwner
+  {
+    oracle = _oracle;
+    jobId = _jobId;
+    ethAddress = _address;
+
+    Chainlink.Request memory reqEth = buildChainlinkRequest(stringToBytes32(jobId), this, this.fulfillEthSorceBalance.selector);
+    reqEth.add("get", strConcat("http://47.242.107.228:8090/balance/eth?address=" ,ethAddress));
+    reqEth.add("path", "data");
+    sendChainlinkRequestTo(oracle, reqEth, ORACLE_PAYMENT);
+
+  }
+
+  function fulfillEthSorceBalance(bytes32 _requestId, uint256 _ethBalance)
+    public
+    recordChainlinkFulfillment(_requestId)
+  {
+   
+    emit RequestEthBalanceFulfilled(_requestId, _ethBalance);
+    ethBalance = _ethBalance;
+
+    Chainlink.Request memory reqTimespan = buildChainlinkRequest(stringToBytes32(jobId), this, this.fulfillEthSoreTimespan.selector);
+    reqTimespan.add("get", strConcat("http://47.242.107.228:8090/rawaddr/eth?address=" ,ethAddress));
+    reqTimespan.add("path", "data");
+    sendChainlinkRequestTo(oracle, reqTimespan, ORACLE_PAYMENT);
+
+  }
+
+  uint256 public ethScore = 0;
+  function fulfillEthSoreTimespan(bytes32 _requestId, uint256 _ethTimeSpan)
+    public
+    recordChainlinkFulfillment(_requestId)
+  {
+   
+    emit RequestEthTimespanFulfilled(_requestId, _ethTimeSpan);
+    ethTimpspan = _ethTimeSpan;
+
+    emit RequestEthScoreFulfilled(ethBalance,ethTimpspan);
+    ethScore = calcEthScore();
+    
+  }
+  
+  event RequestEthScoreResult(
+    uint256 indexed ethScore
+  );
+  
+  function calcEthScore() internal returns (uint256 score){
+      
+
+    uint256 _ethBalanceScore = ethBalance.div(200000000000000000);
+   
+    uint256 _timespanScore = (now.sub(ethTimpspan)).div(3600).div(24).div(200);
+    uint256 _ethScore = _ethBalanceScore + _timespanScore;
+    emit RequestEthScoreResult(_ethScore);
+    
+    return _ethScore;
+  }
+  ////  
+  
+
   /// RequestETHBalance
   uint256 public ethBalance;
   event RequestEthBalanceFulfilled(
@@ -155,7 +221,7 @@ contract DataConsumer is ChainlinkClient, Ownable {
     onlyOwner
   {
     Chainlink.Request memory req = buildChainlinkRequest(stringToBytes32(_jobId), this, this.fulfillEthBalance.selector);
-    req.add("get", strConcat("http://47.99.194.12:8090/balance/eth/?address=" ,_address));
+    req.add("get", strConcat("http://47.242.107.228:8090/balance/eth/?address=" ,_address));
     req.add("path", "data");
     sendChainlinkRequestTo(_oracle, req, ORACLE_PAYMENT);
   }
@@ -181,7 +247,7 @@ contract DataConsumer is ChainlinkClient, Ownable {
     onlyOwner
   {
     Chainlink.Request memory req = buildChainlinkRequest(stringToBytes32(_jobId), this, this.fulfillEthTimespan.selector);
-    req.add("get", strConcat("http://47.99.194.12:8090/rawaddr/eth?address=" ,_address));
+    req.add("get", strConcat("http://47.242.107.228:8090/rawaddr/eth?address=" ,_address));
     req.add("path", "data");
     sendChainlinkRequestTo(_oracle, req, ORACLE_PAYMENT);
   }
