@@ -10,11 +10,11 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v2.0.0/contr
 
 contract DataConsumer is ChainlinkClient, Ownable {
 
-  uint256 constant private ORACLE_PAYMENT = 1 * 10**16;
-  //using SafeMath for uint256;
+  uint256 constant private ORACLE_PAYMENT = 1 * 10**18;
+  using SafeMath for uint256;
 
   constructor() public Ownable() {
-    //setPublicChainlinkToken();
+    setPublicChainlinkToken();
   }
 
   function() public payable{
