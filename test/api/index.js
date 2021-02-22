@@ -56,11 +56,11 @@ const createEthRequest = (address, callback) => {
 //btc
 const getBtcBalance = (btcAddress,callback)  => {
 
-  const url = `https://blockchain.info/q/addressbalance/${btcAddress}`
+  const url = `https://chain.api.btc.com/v3/address/${btcAddress}`
 
   Requester.request(url, customError)
     .then(response => {
-      callback(response.data);
+      callback(response.data["data"]["balance"]);
     })
     .catch(error => {
       console.log("get btc balance error :");
@@ -92,17 +92,18 @@ const createBtcRawaddr = async (address, callback) => {
   
 
   requestJson = {};
-  offset = 0 ;
+  offset = 1 ;
   doCall = true;
+  pageSize = 50;
+  timeSpanLength = 10;
 
   while (doCall) {
 
     requestJson = await RequstForBtcRawaddr(address,offset);
     offset ++;
     
-    //console.log(requestJson);
     //call all the data
-    if(offset * 50 > requestJson["txCnt"]){
+    if(offset * pageSize > requestJson["txCnt"]){
       doCall = false
     }
 
@@ -112,7 +113,7 @@ const createBtcRawaddr = async (address, callback) => {
     }
 
     //find the data
-    if(requestJson["timespan"].toString().length > 2 ){
+    if(requestJson["timespan"].toString().length == timeSpanLength ){
       doCall = false
     }
 
@@ -134,16 +135,19 @@ const RequstForBtcRawaddr = async (btcAddress,offset) =>{
 
   retTimespan = 0
   n_tx = 0
-  const url = "https://blockchain.info/rawaddr/" + btcAddress + "?limit=50&offset=" + offset
-  //console.log(url);
+  const url = "https://chain.api.btc.com/v3/address/" + btcAddress + "/tx?page=" + offset
+  final_balance =  await getBtcBalanceAsync(btcAddress);
 
   await Requester.request(url, customError)
   .then(response => {
     
-    txs = response["data"]["txs"];
-    final_balance =  response["data"]["final_balance"];
-    n_tx = response["data"]["n_tx"];
-    retTimespan = getHistoryBalanceTime(txs,final_balance);
+    txs = response["data"]["data"]["list"];
+    n_tx = response["data"]["data"]["total_count"];
+
+    if(final_balance == -1){
+      console.log("btc balance is not correct");
+    }
+    retTimespan = getHistoryBalanceTime(txs,final_balance,btcAddress,0);
 
   })
   .catch(error => {
@@ -158,7 +162,8 @@ const RequstForBtcRawaddr = async (btcAddress,offset) =>{
 }
 
 //getTimeSpan
-const getHistoryBalanceTime = (txs,balance) =>{
+//type 0 btc;1 eth
+const getHistoryBalanceTime = (txs,balance,address,type) =>{
 
   curBalance = balance;
   isFirstCondtion = false;
@@ -183,39 +188,115 @@ const getHistoryBalanceTime = (txs,balance) =>{
           isFirstCondtion = false
       }
 
-      curBalance = curBalance - txs[index]["result"]
-     
+      if(type == 0){ //btc
+        var retVal = getValue(txs[index],address);
+        curBalance = curBalance - retVal
+      }else if(type == 1){ //eth
+
+        if(txs[index]['from'].toLowerCase() == address.toLowerCase()){
+          curBalance = curBalance.add(txs[index]["value"])
+        }else{
+          curBalance = curBalance.sub(txs[index]["value"])
+        }
+      }else{
+        console.log("type error:now only support btc and eth");
+      }
   }
  
-  if(indexConditon > 0){
-      timeSpan = txs[indexConditon - 1]["time"];
-      //console.log(txs[0]["result"])
-  }else{
-      return 0;
+  //
+  var timeSpanKey = ""
+  if(type == 0){
+    timeSpanKey = "block_time"
+  }else if(type == 1){
+    timeSpanKey = "timeStamp"
   }
 
-  // var date = new Date(timeSpan * 1000);
-  // retDate = sd.format(date,"YYYY-MM-DD-HH:mm");
-  // console.log(retDate);
-  // return retDate;
+  if(indexConditon > 0){
+      timeSpan = txs[indexConditon - 1][timeSpanKey];
+      
+  }else{
+
+    if(txs.length > 0){
+      timeSpan = txs[txs.length - 1][timeSpanKey];
+    }else{
+      return 0;
+    }
+
+  }
   return timeSpan;
 
 }
 
+//get value of certain address
+function getValue(tx,address){
+
+  var retValue = 0
+  //check output
+  var outputs = tx["outputs"]
+  var len = outputs.length
+  var ifFinish = false
+  for(var i = 0 ;i < len ; i ++){
+    if(outputs[i]["addresses"].length > 0 && outputs[i]["addresses"][0] == address){
+      ifFinish = true;
+      retValue = outputs[i]["value"];
+      break;
+     
+    }
+  }
+  
+  //check input
+  var inputs = tx["inputs"]
+  len = inputs.length
+  for(var i = 0 ;i < len ; i ++){
+    if(inputs[i]["prev_addresses"].length > 0 && inputs[i]["prev_addresses"][0] == address){
+      ifFinish  = true;
+      retValue = -1 * inputs[i]["prev_value"]
+      break;
+    }
+  }
+
+  if(ifFinish){
+    return retValue;
+  }
+  console.log("value not find ");
+
+  return retValue
+
+}
+
+const getBtcBalanceAsync = async (btcAddress) =>{
+
+  const url = `https://chain.api.btc.com/v3/address/${btcAddress}`
+
+  var btcValue = 0;
+  await Requester.request(url, customError)
+    .then(response => {
+      btcValue = response["data"]["data"]["balance"];
+    })
+    .catch(error => {
+      btcValue = -1
+    })
+
+    return btcValue;
+  
+}
 ///ethRawaddr
 const createEthRawaddr = async (address, callback) => {
-  
+
+
   requestJson = {};
   page = 1 ;
   doCall = true;
-
+  pageSize = 50;
+  timeSpanLength = 10;
+  
   while (doCall) {
     
     //console.log(page);
     requestJson = await RequstForEthRawaddr(address,page);
     page ++;
     
-    if(page * 50 > requestJson["txCnt"]){
+    if(page * pageSize > requestJson["txCnt"]){
       doCall = false
     }
 
@@ -225,10 +306,9 @@ const createEthRawaddr = async (address, callback) => {
     }
 
     //find the data
-    if(requestJson["timespan"].toString().length > 2 ){
+    if(requestJson["timespan"].toString().length == timeSpanLength ){
       doCall = false
     }
-
   }
 
   const retReponse = {
@@ -257,8 +337,8 @@ const RequstForEthRawaddr = async (ethAddress,page) =>{
   .then(response => {
     
     txs = response["data"]["result"];
-    retTimespan = getHistoryEthTime(txs,final_balance,ethAddress);
-
+    retTimespan = getHistoryBalanceTime(txs,bignum(final_balance),ethAddress,1);
+  
   })
   .catch(error => {
     return {timespan:0,txCnt:0};
@@ -268,51 +348,52 @@ const RequstForEthRawaddr = async (ethAddress,page) =>{
 
 }
 
-//getTimeSpan
-const getHistoryEthTime = (txs,orgBalance,ethAddress) =>{
+// //getTimeSpan
+// const getHistoryEthTime = (txs,orgBalance,ethAddress) =>{
 
-  balance = bignum(orgBalance);
-  curBalance = balance;
-  isFirstCondtion = false;
-  isSecendCondtion = false;
-  timeSpan = 0;
-  indexConditon = 0;
+//   balance = bignum(orgBalance);
+//   console.log(balance);
+//   curBalance = balance;
+//   isFirstCondtion = false;
+//   isSecendCondtion = false;
+//   timeSpan = 0;
+//   indexConditon = 0;
 
   
-  for(var index = 0 ;index < txs.length ;index ++ ){
+//   for(var index = 0 ;index < txs.length ;index ++ ){
 
-      if(curBalance < balance){
-          isSecendCondtion = true;
-      }
+//       if(curBalance < balance){
+//           isSecendCondtion = true;
+//       }
 
-      if(isFirstCondtion && isSecendCondtion ){
-          indexConditon = index;
-          break;
-      }
+//       if(isFirstCondtion && isSecendCondtion ){
+//           indexConditon = index;
+//           break;
+//       }
 
-      if(curBalance >= balance){
-          isFirstCondtion = true
-      }else{
-          isFirstCondtion = false
-      }
+//       if(curBalance >= balance){
+//           isFirstCondtion = true
+//       }else{
+//           isFirstCondtion = false
+//       }
 
-      //chech is +/-
-      if(txs[index]['from'] == ethAddress){
-        curBalance = curBalance.add(txs[index]["value"])
-      }else{
-        curBalance = curBalance.sub(txs[index]["value"])
-      }
-  }
+//       //chech is +/-
+//       if(txs[index]['from'] == ethAddress){
+//         curBalance = curBalance.add(txs[index]["value"])
+//       }else{
+//         curBalance = curBalance.sub(txs[index]["value"])
+//       }
+//   }
  
-  if(indexConditon > 0){
-      timeSpan = txs[indexConditon - 1]["timeStamp"];
-  }else{
-      return 0;
-  }
+//   if(indexConditon > 0){
+//       timeSpan = txs[indexConditon - 1]["timeStamp"];
+//   }else{
+//       return 0;
+//   }
 
-  return timeSpan;
+//   return timeSpan;
 
-}
+// }
 
 const getEthBalanceAsync = async (ethAddress) =>{
 

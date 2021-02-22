@@ -52,7 +52,7 @@ app.get('/balance/eth', (req, res) => {
   })
 })
 
-///
+//
 app.get('/rawaddr/btc', (req, res) => {
 
   createBtcRawaddr(req.query.address, (status, result) => {
