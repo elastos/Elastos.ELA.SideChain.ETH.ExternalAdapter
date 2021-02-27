@@ -1,13 +1,13 @@
 const RunJSON = require('./contracts/DataConsumer.json');
 const Web3 = require('web3');
-const web3Obj = new Web3('https://http-testnet.hecochain.com');
+const web3Obj = new Web3('https://http-mainnet.hecochain.com');
 
 //
-const ContractAddress = "0x746eB81eAA8bce681BEbE4C26f1784886239462c";
+const ContractAddress = "0xdb998E9185A0ABC9fdA297501cf7aed1D0e76da5";
 const privateKey = "c03b0a988e2e18794f2f0e881d7ffcd340d583f63c1be078426ae09ddbdec9f5";
 
-const oracle = "0x436a41D725a14E0eF35cA04416E04f4e725edF69";
-const jobID = "29d9f1c56cf74785a193e1d6b6711712";
+const oracle = "0x2aA6C92c49a6CbF3D0BB667fF4C8cC91183dA48F";
+const jobID = "eb58bb07532d40b2b12ebd777b19530f";
 
 const testBtcAddress = "1EzwoHtiXB4iFwedPr49iywjZn2nnekhoj";
 const testEthAddress = "0xde0b295669a9fd93d5f28d9ec85e40f4cb697bae";
@@ -98,7 +98,7 @@ function getCallMethod(nType){
 }
   
 main().then(() => {
-  console.log("regest OK");
+  console.log("heco OK");
 }).catch((e) => {
   console.log("error", e);
 });
