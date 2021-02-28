@@ -230,16 +230,16 @@ const getHistoryBalanceTime = (txs,balance,address,type) =>{
 //get value of certain address
 function getValue(tx,address){
 
-  var retValue = 0
   //check output
   var outputs = tx["outputs"]
   var len = outputs.length
-  var ifFinish = false
+  //var ifFinish = false
+  var outputValue = 0;
   for(var i = 0 ;i < len ; i ++){
     if(outputs[i]["addresses"].length > 0 && outputs[i]["addresses"][0] == address){
-      ifFinish = true;
-      retValue = outputs[i]["value"];
-      break;
+      //ifFinish = true;
+      outputValue += outputs[i]["value"];
+      //break;
      
     }
   }
@@ -247,20 +247,16 @@ function getValue(tx,address){
   //check input
   var inputs = tx["inputs"]
   len = inputs.length
+  var inputValue = 0;
   for(var i = 0 ;i < len ; i ++){
     if(inputs[i]["prev_addresses"].length > 0 && inputs[i]["prev_addresses"][0] == address){
-      ifFinish  = true;
-      retValue = -1 * inputs[i]["prev_value"]
-      break;
+      //ifFinish  = true;
+      inputValue += -1 * inputs[i]["prev_value"]
+      //break;
     }
   }
 
-  if(ifFinish){
-    return retValue;
-  }
-  console.log("value not find ");
-
-  return retValue
+  return (outputValue + inputValue)
 
 }
 
