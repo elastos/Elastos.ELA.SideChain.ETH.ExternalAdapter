@@ -13,6 +13,7 @@ contract DataConsumer is ChainlinkClient, Ownable {
   uint256 constant private ORACLE_PAYMENT = 1 * 10**16;
   using SafeMath for uint256;
 
+
   constructor() public Ownable() {
     setPublicChainlinkToken();
   }
@@ -206,8 +207,6 @@ contract DataConsumer is ChainlinkClient, Ownable {
     
     return _ethScore;
   }
-  ////  
-  
 
   /// RequestETHBalance
   uint256 public ethBalance;
@@ -261,13 +260,129 @@ contract DataConsumer is ChainlinkClient, Ownable {
     ethTimpspan = _ethTimpspan;
   }
 
-  ///
+  //----HT
+  string htAddress;
+  event RequestHtScoreFulfilled(
+    int256 indexed htBalance,
+    int256 indexed htLiquidity
+  );
+  function RequestHtScore(address _oracle, string _jobId,string _address)
+    public
+    onlyOwner
+  {
+    oracle = _oracle;
+    jobId = _jobId;
+    htAddress = _address;
+
+    Chainlink.Request memory reqHt = buildChainlinkRequest(stringToBytes32(jobId), this, this.fulfillHtSorceBalance.selector);
+    reqHt.add("get", strConcat("http://47.242.107.228:8090/balance/ht?address=" ,htAddress));
+    reqHt.add("path", "data");
+    sendChainlinkRequestTo(oracle, reqHt, ORACLE_PAYMENT);
+
+  }
+
+  function fulfillHtSorceBalance(bytes32 _requestId, int256 _htBalance)
+    public
+    recordChainlinkFulfillment(_requestId)
+  {
+   
+    emit RequestHtBalanceFulfilled(_requestId, _htBalance);
+    htBalance = _htBalance;
+
+    Chainlink.Request memory reqLiquity = buildChainlinkRequest(stringToBytes32(jobId), this, this.fulfillHtScoreLiqudity.selector);
+    reqLiquity.add("get", strConcat("http://47.242.107.228:8090/liquidity/ht?address=" ,htAddress));
+    reqLiquity.add("path", "data");
+    sendChainlinkRequestTo(oracle, reqLiquity, ORACLE_PAYMENT);
+
+  }
+
+  int256 public htScore = 0;
+  function fulfillHtScoreLiqudity(bytes32 _requestId, int256 _htLiquidity)
+    public
+    recordChainlinkFulfillment(_requestId)
+  {
+   
+    emit RequestHtLiquidityFulfilled(_requestId, _htLiquidity);
+    htLiquidity = _htLiquidity;
+
+    emit RequestHtScoreFulfilled(htBalance,htLiquidity);
+    htScore = calcHtScore();
+    
+  }
+  
+  event RequestHTScoreResult(
+    int256 indexed htScore
+  );
+  
+  function calcHtScore() internal returns (int256 score){
+      
+
+    int256 _htBalanceScore = htBalance / 200000000000000000 / 100;
+    int256 _htLiquidityScore = htLiquidity / 200000000000000000 ;
+    int256 _htScore = _htBalanceScore + _htLiquidityScore;
+    emit RequestHTScoreResult(_htScore);
+    
+    return _htScore;
+  }
+
+
+  /// RequestETHBalance
+  int256 public htBalance;
+  event RequestHtBalanceFulfilled(
+    bytes32 indexed requestId,
+    int256 indexed htBalance
+  );
+
+  function RequestHtBalance(address _oracle, string _jobId,string _address)
+    public
+    onlyOwner
+  {
+    Chainlink.Request memory req = buildChainlinkRequest(stringToBytes32(_jobId), this, this.fulfillHtBalance.selector);
+    req.add("get", strConcat("http://47.242.107.228:8090/balance/ht/?address=" ,_address));
+    req.add("path", "data");
+    sendChainlinkRequestTo(_oracle, req, ORACLE_PAYMENT);
+  }
+
+  function fulfillHtBalance(bytes32 _requestId, int256 _htBalance)
+    public
+    recordChainlinkFulfillment(_requestId)
+  {
+   
+    emit RequestHtBalanceFulfilled(_requestId, _htBalance);
+    htBalance = _htBalance;
+  }
+
+  /// RequestEthTimespan
+  int256 public htLiquidity;
+  event RequestHtLiquidityFulfilled(
+    bytes32 indexed requestId,
+    int256 indexed htLiquidity
+  );
+
+  function RequestHtLiquidity(address _oracle, string _jobId,string _address)
+    public
+    onlyOwner
+  {
+    Chainlink.Request memory req = buildChainlinkRequest(stringToBytes32(_jobId), this, this.fulfillHtLiqudity.selector);
+    req.add("get", strConcat("http://47.242.107.228:8090/liquidity/ht?address=" ,_address));
+    req.add("path", "data");
+    sendChainlinkRequestTo(_oracle, req, ORACLE_PAYMENT);
+  }
+
+  function fulfillHtLiqudity(bytes32 _requestId, int256 _htLiquidity)
+    public
+    recordChainlinkFulfillment(_requestId)
+  {
+   
+    emit RequestHtLiquidityFulfilled(_requestId, _htLiquidity);
+    htLiquidity = _htLiquidity;
+  }
+
+  //
   function strConcat(string a, string b) internal pure returns (string) {
       return string(abi.encodePacked(a, b));
   }
   
- 
-
   function cancelRequest(
     bytes32 _requestId,
     uint256 _payment,
