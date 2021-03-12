@@ -1,6 +1,12 @@
 const sd = require("silly-datetime");
 var bignum = require('bignum');
 const { Requester, Validator } = require('@chainlink/external-adapter')
+const config = require('./config.json');
+const ethApiKey = config["ethApiKey"];
+const htApiKey = config["htApiKey"];
+
+//初始化过程
+var Web3 = require('web3');
 
 // Define custom error scenarios for the API.
 // Return true for the adapter to retry.
@@ -72,7 +78,7 @@ const getBtcBalance = (btcAddress,callback)  => {
 ///eth
 const getEthBalance = (ethAddress,callback) =>{
 
-  const url = `https://api.etherscan.io/api?module=account&action=balance&address=${ethAddress}&tag=latest&apikey=NF6N7FHJSHMIXZ34XDB4VIBQ8Z6242SW3C`
+  const url = `https://api.etherscan.io/api?module=account&action=balance&address=${ethAddress}&tag=latest&apikey=${ethApiKey}`
 
   Requester.request(url, customError)
     .then(response => {
@@ -393,7 +399,7 @@ const RequstForEthRawaddr = async (ethAddress,page) =>{
 
 const getEthBalanceAsync = async (ethAddress) =>{
 
-  const url = `https://api.etherscan.io/api?module=account&action=balance&address=${ethAddress}&tag=latest&apikey=NF6N7FHJSHMIXZ34XDB4VIBQ8Z6242SW3C`
+  const url = `https://api.etherscan.io/api?module=account&action=balance&address=${ethAddress}&tag=latest&apikey=${ethApiKey}`
 
   var ethValue = "0";
   await Requester.request(url, customError)
@@ -442,6 +448,80 @@ exports.handlerv2 = (event, context, callback) => {
 
 
 
+//ht request
+const createHtRequest = (address, callback) => {
+  
+  getHtBalance(address ,(htBalance) => {
+    
+    const retReponse = {
+        data:htBalance
+    }
+    callback(200, retReponse)
+  });
+
+}
+
+
+//ht balance
+const getHtBalance = (htAddress,callback)  => {
+
+  const url = `https://api.hecoinfo.com/api?module=account&action=balance&address=${htAddress}&tag=latest&apikey=${htApiKey}`
+
+  Requester.request(url, customError)
+    .then(response => {
+
+      console.log(response);
+
+      callback(response.data["result"]);
+
+
+    })
+    .catch(error => {
+      console.log("get ht balance error :");
+      console.log(error);
+      callback(-1);
+    })
+}
+
+
+
+//liquidity request
+const createLiquidityRequest = (address, callback) => {
+  
+  getLiquidity(address ,(ethLiquidity) => {
+    
+    const retReponse = {
+        data:ethLiquidity
+    }
+    callback(200, retReponse)
+  });
+
+}
+
+
+//ht balance
+const getLiquidity = (htAddress,callback)  => {
+
+  const url = `https://lq.ifoobar.com/api/account?address=${htAddress}`
+
+  Requester.request(url, customError)
+    .then(response => {
+
+      const responseData = response["data"]["data"];
+      const liquidityEth = parseFloat(responseData["total_collateral_value_in_eth"]) - parseFloat(responseData["total_borrow_value_in_eth"])
+      //console.log(liquidityEth);
+      //console.log("data end ....");
+      const val = Web3.utils.toWei(liquidityEth + "","ether");
+      callback(val);
+
+    })
+    .catch(error => {
+      console.log("get eth liquidity error :");
+      console.log(error);
+      callback(-1);
+    })
+}
+
 
 
 // This allows the function to be exported for testing
@@ -454,3 +534,7 @@ module.exports.createEthRequest = createEthRequest
 //
 module.exports.createBtcRawaddr = createBtcRawaddr
 module.exports.createEthRawaddr = createEthRawaddr
+
+//Ht
+module.exports.createHtRequest = createHtRequest
+module.exports.createLiquidityRequest = createLiquidityRequest

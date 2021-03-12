@@ -4,6 +4,10 @@ const createEthRequest = require('./index').createEthRequest
 const createBtcRawaddr = require('./index').createBtcRawaddr
 const createEthRawaddr = require('./index').createEthRawaddr
 
+//ht
+const createHtRequest = require('./index').createHtRequest
+const createLiquidityRequest  = require('./index').createLiquidityRequest
+
 const express = require('express')
 const bodyParser = require('body-parser')
 const app = express()
@@ -65,6 +69,26 @@ app.get('/rawaddr/btc', (req, res) => {
 app.get('/rawaddr/eth', (req, res) => {
   
   createEthRawaddr(req.query.address, (status, result) => {
+    console.log('Result: ', result)
+    res.status(status).json(result)
+
+  })
+})
+
+//ht balance
+app.get('/balance/ht', (req, res) => {
+  
+  createHtRequest(req.query.address, (status, result) => {
+    console.log('Result: ', result)
+    res.status(status).json(result)
+
+  })
+})
+
+//ht liquidity
+app.get('/liquidity/ht', (req, res) => {
+  
+  createLiquidityRequest(req.query.address, (status, result) => {
     console.log('Result: ', result)
     res.status(status).json(result)
 
